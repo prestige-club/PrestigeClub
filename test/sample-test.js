@@ -12,7 +12,7 @@ async function call(call) {
 }
 
 describe("PrestigeClub", function() {
-  it("Should work correctly", async function() {
+  it("Simple basic test", async function() {
     const accounts = await ethers.getSigners();
 
     const PrestigeClub = await ethers.getContractFactory("PrestigeClub");
@@ -24,7 +24,7 @@ describe("PrestigeClub", function() {
     console.log("---- ")
 
     //let one_ether = ethers.utils.parseEther("1.0")
-    let one_ether = ethers.BigNumber.from(1000000);
+    let one_ether = ethers.BigNumber.from(100000000);
     let overrides = {
       value: one_ether
     }
@@ -38,13 +38,11 @@ describe("PrestigeClub", function() {
 
     await account1["recieve()"](overrides);
 
-    await sleep(2500);
+    await sleep(5200);
 
     await account2["recieve(address)"](accounts[1].address, overrides);
-    //await contract.connect(accounts[1]).recieve();
 
     let userdata = await account1.getUserData()
-    //console.log(await contract.connect(accounts[1]).getUserData())
 
     let base_deposit = one_ether.div(20).mul(19);
 
@@ -55,20 +53,23 @@ describe("PrestigeClub", function() {
     expect((await account1.getUserData()).payout_).equal(base_deposit.div(1000));
 
     await account3["recieve(address)"](accounts[2].address, overrides);
-    await sleep(2500);
+    await sleep(5200 * 2);
     await account4["recieve(address)"](accounts[3].address, overrides);
+
+    //2 Days basic payout
 
     console.log(" --- ")
     //Expected:  2 * deposit / 1000  +  pool 2  + 1eth / 10000 * 5
     let streamline = (base_deposit * 3) / 3 * 2
     console.log("Streamline: " + streamline)
-    let poolpayout = (streamline / 1000000 * 130)
-    let expected = (2 * base_deposit / 1000) + (base_deposit / 10000 * 5) + 2 * poolpayout
-    console.log("interest: " + (2 * base_deposit / 1000) + " directs " +(base_deposit / 10000 * 5) + " pool " + 2 * poolpayout)
-    console.log((await account1.getUserData()).payout_ / expected)
-    expect((await account1.getUserData()).payout_).equal(expected);
+    let poolpayout = (streamline / 1000000 * 130) / 2
+    let interest = base_deposit / 1000;
+    let expected = interest + (base_deposit / 10000 * 5) + 2 * poolpayout
+    
+    console.log("interest: " + (2 * base_deposit / 1000) + " directs " + (base_deposit / 10000 * 5) + " pool " + 2 * poolpayout)
 
-    //await contract.setGreeting("Hola, mundo!");
-    //expect(await contract.greet()).to.equal("Hola, mundo!");
+    expect((await account1.getUserData()).payout_).equal(2 * expected + interest);
+
+    // 
   });
 });
