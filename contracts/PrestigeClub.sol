@@ -194,7 +194,7 @@ contract PrestigeClub is Ownable(), Pausable() {
         uint32[8] numUsers;
     }
     
-    DownlineBonusStage[4] downlineBonuses;
+    DownlineBonusStage[5] downlineBonuses;
     
     struct DownlineBonusStage {
         uint32 minPool;
@@ -226,21 +226,20 @@ contract PrestigeClub is Ownable(), Pausable() {
         
         pools[0] = Pool(1000 wei, 1, 1000 wei, 130, 0); 
         pools[1] = Pool(1000 wei, 1, 1000 wei, 130, 0);
-        pools[2] = Pool(0.5 ether, 2, 1.1 ether, 130, 0);
-        pools[3] = Pool(0.5 ether, 3, 5 ether, 130, 0);
+        pools[2] = Pool(10000 wei, 1, 10000 wei, 130, 0);
+        pools[3] = Pool(0.5 ether, 2, 1.1 ether, 130, 0);
         pools[4] = Pool(0.5 ether, 3, 5 ether, 130, 0);
         pools[5] = Pool(2 ether, 5, 5 ether, 130, 0);
         pools[6] = Pool(3 ether, 5, 5 ether, 80, 0);
         pools[7] = Pool(5 ether, 5, 10 ether, 80, 0);
         
-        downlineBonuses[0] = DownlineBonusStage(3, 50);
-        downlineBonuses[1] = DownlineBonusStage(4, 100);
-        downlineBonuses[2] = DownlineBonusStage(5, 160);
-        downlineBonuses[3] = DownlineBonusStage(6, 210);
+        downlineBonuses[0] = DownlineBonusStage(2, 50);
+        downlineBonuses[1] = DownlineBonusStage(3, 100);
+        downlineBonuses[2] = DownlineBonusStage(4, 160);
+        downlineBonuses[3] = DownlineBonusStage(5, 210);
+        downlineBonuses[4] = DownlineBonusStage(6, 260);
         
         userList.push(address(0));
-
-        //states.push(PoolState(0, 0, [uint32(0), uint32(0), uint32(0), uint32(0), uint32(0), uint32(0), uint32(0), uint32(0)]));
         
     }
     
@@ -381,15 +380,15 @@ contract PrestigeClub is Ownable(), Pausable() {
         if(users[adr].qualifiedPools > 0){
             for(uint40 day = length - dayz ; day < length ; day++){
 
-                console.log("Day %s", day);
-                console.log("Address %s", adr);
+                //console.log("Day %s", day);
+                //console.log("Address %s", adr);
 
                 uint32 numUsers = states[day].totalUsers;
                 uint104 streamline = (uint104) (states[day].totalDeposits / (numUsers) * (numUsers - users[adr].position));
 
-                console.log("Streamline: %s", streamline);
-                console.log("QualifiedPools: %s", users[adr].qualifiedPools);
-                console.log("LastPosition: %s, adr: %s", numUsers, adr);
+                //console.log("Streamline: %s", streamline);
+                //console.log("QualifiedPools: %s", users[adr].qualifiedPools);
+                //console.log("LastPosition: %s, adr: %s", numUsers, adr);
 
                 uint104 payout_day = 0; //TODO Merge into poolpayout, only for debugging
                 uint32 stateNumUsers = 0;
@@ -404,7 +403,7 @@ contract PrestigeClub is Ownable(), Pausable() {
                         console.log("WTF NO 0!!!!");
                     }
                 }
-                console.log("day poolpayout %s", payout_day);
+                //console.log("day poolpayout %s", payout_day);
 
                 poolpayout += payout_day;
 
@@ -419,12 +418,14 @@ contract PrestigeClub is Ownable(), Pausable() {
     function getDownlinePayout(address adr) public view returns (uint104){
 
         //Calculate Downline Bonus
-        uint104 downlinePayout = 0; //Reusing streamline for stack depth
+        uint104 downlinePayout = 0;
         
         uint8 downlineBonus = users[adr].downlineBonus;
+        console.log("DownlineBonusStage %s", downlineBonus);
         
         if(downlineBonus > 0){
             
+            console.log("DownlineBonus %s %s", users[adr].downlinesum, downlineBonuses[downlineBonus - 1].payoutQuote);
             downlinePayout = users[adr].downlinesum / 1000000 * downlineBonuses[downlineBonus - 1].payoutQuote;
 
         }
