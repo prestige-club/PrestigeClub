@@ -144,6 +144,7 @@ contract Pausable is Context {
 //Restrictions:
 //only 2^32 Users
 //Maximum of 2^104 / 10^18 Ether investment. Theoretically 20 Trl Ether, practically 100000000000 Ether compiles
+//Maximum of (2^104 / 10^18 Ether) investment. Theoretically 20 Trl Ether, practically 100000000000 Ether compiles
 contract PrestigeClub is Ownable(), Pausable() {
 
     struct User {
@@ -198,7 +199,6 @@ contract PrestigeClub is Ownable(), Pausable() {
     
     struct DownlineBonusStage {
         uint32 minPool;
-        //uint minDirects;
         uint64 payoutQuote; //ppm
     }
     
@@ -215,23 +215,24 @@ contract PrestigeClub is Ownable(), Pausable() {
         pools[6] = Pool(15 ether, 20, 147 ether, 80, 0);
         pools[7] = Pool(30 ether, 20, 295 ether, 80, 0);*/
         
-        /*pools[0] = Pool(0.3 ether, 1, 0.3 ether, 130, 0); 
+        pools[0] = Pool(0.3 ether, 1, 0.3 ether, 130, 0); 
         pools[1] = Pool(0.5 ether, 1, 0.5 ether, 130, 0);
-        pools[2] = Pool(0.5 ether, 3, 4.4 ether, 130, 0);
-        pools[3] = Pool(0.5 ether, 3, 5 ether, 130, 0);
-        pools[4] = Pool(0.5 ether, 3, 5 ether, 130, 0);
+        pools[2] = Pool(0.5 ether, 3, 1.4 ether, 130, 0);
+        pools[3] = Pool(0.5 ether, 3, 1.5 ether, 130, 0);
+        pools[4] = Pool(0.5 ether, 3, 1.7 ether, 130, 0);
         pools[5] = Pool(2 ether, 5, 5 ether, 130, 0);
         pools[6] = Pool(3 ether, 5, 5 ether, 80, 0);
-        pools[7] = Pool(5 ether, 5, 10 ether, 80, 0);*/
+        pools[7] = Pool(5 ether, 5, 10 ether, 80, 0);
         
-        pools[0] = Pool(1000 wei, 1, 1000 wei, 130, 0); 
+        //Testing Pools
+        /*pools[0] = Pool(1000 wei, 1, 1000 wei, 130, 0); 
         pools[1] = Pool(1000 wei, 1, 1000 wei, 130, 0);
         pools[2] = Pool(1000 wei, 1, 10000 wei, 130, 0);
         pools[3] = Pool(2 ether, 1, 10000 wei, 130, 0);
         pools[4] = Pool(2 ether, 1, 10000 wei, 130, 0);
         pools[5] = Pool(2 ether, 1, 10000 wei, 130, 0);
         pools[6] = Pool(2 ether, 1, 10000 wei, 130, 0);
-        pools[7] = Pool(5 ether, 5, 10 ether, 80, 0);
+        pools[7] = Pool(5 ether, 5, 10 ether, 80, 0);*/
         
         downlineBonuses[0] = DownlineBonusStage(3, 100);
         downlineBonuses[1] = DownlineBonusStage(4, 160);
@@ -271,7 +272,7 @@ contract PrestigeClub is Ownable(), Pausable() {
             userList.push(sender);
         }
 
-        address referer = users[sender].referer; //can put outside because referer is always set since setReferral() gets called before recieve()
+        address referer = users[sender].referer; //can put outside because referer is always set since setReferral() gets called before recieve() in recieve(address)
 
         if(referer != address(0)){
             updateUpline(sender, referer, value);
@@ -284,7 +285,7 @@ contract PrestigeClub is Ownable(), Pausable() {
 
         users[sender].deposit += value;
         
-        //Pay fee
+        //Transfer fee
         payable(owner()).transfer(msg.value - value);
         
         emit NewDeposit(sender, value);
@@ -312,9 +313,11 @@ contract PrestigeClub is Ownable(), Pausable() {
         address current = adr;
         uint8 bonusStage = users[reciever].downlineBonus;
 
+        uint8 limit = 10;
+
         console.log("updateUpline");
         
-        while(current != address(0)){
+        while(current != address(0) && limit > 0){
             
             console.log(current);
 
@@ -329,6 +332,7 @@ contract PrestigeClub is Ownable(), Pausable() {
             }
 
             current = users[current].referer;
+            limit--;
         }
         
     }
@@ -344,7 +348,7 @@ contract PrestigeClub is Ownable(), Pausable() {
             
             uint104 interestPayout = getInterestPayout(adr);
             uint104 poolpayout = getPoolPayout(adr, dayz);
-            uint104 directsPayout = getPayout(adr);
+            uint104 directsPayout = getDirectsPayout(adr);
             uint104 downlineBonusAmount = getDownlinePayout(adr);
 
             // console.log("Got updatePayout for %s days %s", dayz, adr);
@@ -452,7 +456,6 @@ contract PrestigeClub is Ownable(), Pausable() {
 
             }
 
-            //TODO Insert 0,005 here
             if(downlineBonus == 4){
                 downlinePayout += users[adr].downlineVolumes[downlineBonus] * 50 / 1000000;
                 // console.log("Granted 0,005 For Level 4", users[adr].downlineVolumes[downlineBonus] * 50 / 1000000);
@@ -465,10 +468,10 @@ contract PrestigeClub is Ownable(), Pausable() {
         
     }
 
-    function getPayout(address adr) public view returns ( uint104) {
+    function getDirectsPayout(address adr) public view returns ( uint104) {
         
         //Calculate Directs Payouts
-        (uint104 directsDepositSum, ) = calculateDirects(users[adr]); //TODO Nicht dynamisch bro
+        (uint104 directsDepositSum, ) = calculateDirects(adr); //TODO Nicht dynamisch bro
         
         uint104 directsPayout = directsDepositSum / 10000 * 5;
         
@@ -525,7 +528,7 @@ contract PrestigeClub is Ownable(), Pausable() {
             // console.log("%s >= %s", users[adr].qualifiedPools, downlineBonuses[bonusstage].minPool);
 
             //Check if requirements for next stage are met
-            if(users[adr].qualifiedPools >= downlineBonuses[bonusstage].minPool){// && user.referrals.length >= downlineBonuses[bonusstage].minDirects){
+            if(users[adr].qualifiedPools >= downlineBonuses[bonusstage].minPool){
                 users[adr].downlineBonus += 1;
                 
                 //Update data in upline
@@ -560,18 +563,17 @@ contract PrestigeClub is Ownable(), Pausable() {
                 
                 updateDownlineBonusStage(adr);
             }
-            // console.log("Reached %s", users[adr].downlineBonus);
         }
         
     }
     
     function calculateDirects() external view returns (uint128 sum, uint32 numDirects) {
-        return calculateDirects(users[_msgSender()]);
+        return calculateDirects(_msgSender());
     }
     
-    function calculateDirects(User memory user) private view returns (uint104, uint32) {
+    function calculateDirects(address adr) private view returns (uint104, uint32) {
         
-        address[] memory referrals = user.referrals;
+        address[] memory referrals = users[adr].referrals;
         
         uint104 sum = 0;
         for(uint32 i = 0 ; i < referrals.length ; i++){
@@ -582,8 +584,11 @@ contract PrestigeClub is Ownable(), Pausable() {
         
     }
     
+    //Endpoint to withdraw payouts
     function withdraw(uint104 amount) public whenNotPaused {
         
+        updatePayout(_msgSender());
+
         require(amount > minWithdraw, "Minimum Withdrawal amount not met");
         require(users[_msgSender()].payout >= amount, "Not enough payout available to cover withdrawal request");
         
@@ -598,22 +603,6 @@ contract PrestigeClub is Ownable(), Pausable() {
         payable(owner()).transfer(amount - transfer);
         
     }
-
-    // function estimatePayouts(address adr) external view returns (uint104 sum, uint104 interest, uint104 pool, uint104 directs, uint104 downline){
-    //     uint104 interestPayout = getInterestPayout(adr);
-    //     uint104 poolpayout = getPoolPayout(adr, 1);
-    //     uint104 directsPayout = getPayout(adr);
-    //     uint104 downlineBonusAmount = getDownlinePayout(adr);
-    //     return (interestPayout + poolpayout + directsPayout + downlineBonusAmount, interestPayout, poolpayout, directsPayout, downlineBonusAmount);
-    // }
-    
-    /*function setReferral(address referer) public whenNotPaused {
-        
-        _setReferral(referer);
-        
-        updateUserPool(referer);
-        updateDownlineBonusStage(referer);
-    }*/
 
     function _setReferral(address referer) private {
         
@@ -635,17 +624,13 @@ contract PrestigeClub is Ownable(), Pausable() {
         emit Referral(referer, _msgSender());
     }
     
-    /*function totalDeposits() public view returns (uint) {
-        uint104 sum = 0;
-        for(uint32 i = 1 ; i < userList.length ; i++) {
-            sum += users[userList[i]].deposit;
-        }
-        return sum;
-    }*/
+    function totalDeposits() public view returns (uint) { //Probably not needed?
+        return depositSum;
+    }
     
     uint invested = 0;
     
-    /*function invest(uint amount) public onlyOwner {
+    function invest(uint amount) public onlyOwner {
         
         payable(owner()).transfer(amount);
         
@@ -674,7 +659,30 @@ contract PrestigeClub is Ownable(), Pausable() {
     
     function unpause() external onlyOwner {
         _unpause();
-    }*/
+    }
+
+    //Only for BO
+    function getDownline() external view returns (uint104, uint){
+        uint104 sum;
+        for(uint8 i = 0 ; i < users[_msgSender()].downlineVolumes.length ; i++){
+            sum += users[_msgSender()].downlineVolumes[i];
+        }
+
+        uint numUsers = getDownlineUsers(_msgSender());
+
+        return (sum, numUsers);
+    }
+
+    function getDownlineUsers(address adr) public view returns (uint){
+
+        uint sum = 0;
+        uint length = users[adr].referrals.length;
+        sum += length;
+        for(uint i = 0; i < length ; i++){
+            sum += getDownlineUsers(users[adr].referrals[i]);
+        }
+        return sum;
+    }
 
     function getUserData() public view returns (
         address adr_,
@@ -698,8 +706,9 @@ contract PrestigeClub is Ownable(), Pausable() {
                 users[_msgSender()].referrals);
     }
     
-    //TODO DEBUG
-    function getUserList() public view returns (address[] memory){
+    //DEBUGGING
+    //Used for extraction of User data in case of something bad happening and fund reversal needed.
+    function getUserList() public view returns (address[] memory){  //TODO Probably not needed
         return userList;
     }
     
@@ -708,25 +717,22 @@ contract PrestigeClub is Ownable(), Pausable() {
         uint32 position_,
         uint128 deposit_,
         uint128 payout_,
-        uint8 qualifiedPools_
-        // address referer,
-        // address[] memory referrals_
+        uint lastPayout_,
+        uint8 qualifiedPools_,
+        address referer
         ){
             
             return (adr, 
                 users[adr].position,
                 users[adr].deposit,
                 users[adr].payout,
-                users[adr].qualifiedPools
-                // users[adr].referer,
-                // users[adr].referrals
+                users[adr].lastPayout,
+                users[adr].qualifiedPools,
+                users[adr].referer
                 );
     }
     
     function triggerCalculation() public { //TODO Either onlyOwner or remove
-        //calculatePayouts();
-        //calculateStreamlineForAll();
-        // console.log("triggerCalculation");
         
         if(block.timestamp > pool_last_draw + payout_interval){
             pushPoolState();

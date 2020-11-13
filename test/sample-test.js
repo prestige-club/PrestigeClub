@@ -12,39 +12,29 @@ async function call(call) {
   return result;
 }
 
+async function createContract(name){
+
+  const accounts = await ethers.getSigners();
+    
+  const factory = await ethers.getContractFactory(name);
+  const contract = await factory.deploy();
+  return [accounts, contract];
+
+}
+
+function getSigners(accounts, contract){
+  return accounts.map(x => contract.connect(x));
+}
+
 function it2(x, y){}
 
 describe("PrestigeClub", function() {
 
-  /*it("Test test", async function() {
+  it2("Load Test", async function(){
 
-    const test = await ethers.getContractFactory("Test");
-    const contract = await test.deploy();
+    let (accounts, contract) = await createContract("PrestigeClub");
 
-    contract.test();
-  });*/
-
-  // it("calculateNormalizedDownlineBonus", async function(){
-  //   const PrestigeClub = await ethers.getContractFactory("PrestigeClub");
-  //   const contract = await PrestigeClub.deploy();
-
-  //   expect((await contract.calculateNormalizedDownlineBonus(200, 1000000, 300)).toNumber()).equal(Math.round(1000000/3));
-  //   expect(await contract.calculateNormalizedDownlineBonus(200, 1000000, 300)).equal(Math.round(1000000/3));
-  //   expect(await contract.calculateNormalizedDownlineBonus(200, 1000000, 400)).equal(Math.round(1000000/2));
-  //   expect(await contract.calculateNormalizedDownlineBonus(200, 1000000, 200)).equal(0);
-
-  //   expect(await contract.calculateNormalizedDownlineBonus(300, 1000000, 400)).equal(Math.round(1000000/4));
-
-  // });
-
-  it("Load Test", async function(){
-
-    const accounts = await ethers.getSigners();
-    
-    const PrestigeClub = await ethers.getContractFactory("PrestigeClub");
-    const contract = await PrestigeClub.deploy();
-
-    let signers = accounts.map(x => contract.connect(x));
+    let signers = getSigners(accounts, contract);
 
     let one_ether = ethers.utils.parseEther("1");
     let overrides = {
@@ -55,30 +45,22 @@ describe("PrestigeClub", function() {
 
     for(let i = 1 ; i < signers.length ; i++){
 
-      await signers[i]["recieve(address)"](accounts[0].address, overrides);
+      await signers[i]["recieve(address)"](accounts[i - 1].address, overrides);
 
     }
 
-    await sleep(5000);
-    await signers[signers.length -1 ]["recieve()"](overrides);
+    // await sleep(5000);
+    // await signers[signers.length -1 ]["recieve()"](overrides);
 
     console.log("Tested for " + signers.length + " signers");
 
   });
 
-  it2("Downlinebonustest 2", async function(){
+  it("Downlinebonustest 2", async function(){
     
-    const accounts = await ethers.getSigners();
+    const [accounts, contract] = await createContract("PrestigeClub");
 
-    const PrestigeClub = await ethers.getContractFactory("PrestigeClub");
-    const contract = await PrestigeClub.deploy();
-
-    let account1 = contract.connect(accounts[1]);
-    let account2 = contract.connect(accounts[2]);
-    let account3 = contract.connect(accounts[3]);
-    let account4 = contract.connect(accounts[4]);
-    let account5 = contract.connect(accounts[5]);
-    let account6 = contract.connect(accounts[6]);
+    let [_, account1, account2, account3, account4, account5, account6] = getSigners(accounts, contract);
     
     let min_deposit = ethers.BigNumber.from(20000);
     let one_ether = ethers.utils.parseEther("1");
@@ -127,19 +109,11 @@ describe("PrestigeClub", function() {
 
   });
 
-  it2("Downlinebonus test", async function(){
+  it("Downlinebonus test", async function(){
     
-    const accounts = await ethers.getSigners();
+    const [accounts, contract] = await createContract("PrestigeClub");
 
-    const PrestigeClub = await ethers.getContractFactory("PrestigeClub");
-    const contract = await PrestigeClub.deploy();
-
-    let account1 = contract.connect(accounts[1]);
-    let account2 = contract.connect(accounts[2]);
-    let account3 = contract.connect(accounts[3]);
-    let account4 = contract.connect(accounts[4]);
-    let account5 = contract.connect(accounts[5]);
-    let account6 = contract.connect(accounts[6]);
+    let [_, account1, account2, account3, account4, account5, account6] = getSigners(accounts, contract);
     
     let one_ether = ethers.BigNumber.from(100000000);
     let overrides = {
@@ -202,32 +176,23 @@ describe("PrestigeClub", function() {
 
   })
 
-  it2("Simple basic test", async function() {
+  it("Simple basic test", async function() {
     const delay = 4000;
-    const accounts = await ethers.getSigners();
 
-    const PrestigeClub = await ethers.getContractFactory("PrestigeClub");
-    const contract = await PrestigeClub.deploy();
+    const [accounts, contract] = createContract("PrestigeClub");
     
-    [accounts[0], accounts[1], accounts[2], accounts[3], accounts[4]].forEach(account => {
-      console.log(account.address);
-    })
+    let [_, account1, account2, account3, account4, account5] = getSigners(accounts, contract);
+
+    // [accounts[0], accounts[1], accounts[2], accounts[3], accounts[4]].forEach(account => {
+    //   console.log(account.address);
+    // })
     console.log("---- ")
 
-    //let one_ether = ethers.utils.parseEther("1.0")
     let one_ether = ethers.BigNumber.from(100000000);
     let overrides = {
       value: one_ether
     }
-
-    await contract.deployed();
-    //console.log(contract.connect(accounts[1])["recieve()"](overrides));
-    let account1 = contract.connect(accounts[1]);
-    let account2 = contract.connect(accounts[2]);
-    let account3 = contract.connect(accounts[3]);
-    let account4 = contract.connect(accounts[4]);
-    let account5 = contract.connect(accounts[5]);
-
+    
     await account1["recieve()"](overrides);
 
     await sleep(delay);
