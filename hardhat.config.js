@@ -1,3 +1,5 @@
+const { task } = require("hardhat/config");
+
 require("@nomiclabs/hardhat-waffle");
 
 require("hardhat-gas-reporter");
@@ -12,6 +14,33 @@ task("accounts", "Prints the list of accounts", async () => {
   }
 });
 
+task("export", "Exports the source code to remix")
+  .addParam("contract", "The name of the contract")
+  .setAction(async args => {
+
+    const fs = require('fs');
+
+    console.log('/contracts/' + args.contract + '.sol');
+    data = fs.readFileSync('contracts/' + args.contract + '.sol', 'utf8')
+    //  , (err, data) => {
+      // if (err) {
+      //   console.error(err)
+      //   return
+      // }
+      let cleaned = data.split("\n").filter(line => {
+        if(line.includes("import \"hardhat/console.sol\"")) {
+          return false;
+        }else if(line.includes("console.log(")){
+          return false;
+        }else{
+          return true;
+        }
+      }).join("\n")
+      fs.writeFileSync('cleaned/' + args.contract + ".sol", cleaned);
+    // })
+
+});
+
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
@@ -23,7 +52,7 @@ module.exports = {
   settings: {
     // optimizer: {
     //   enabled: true,
-    //   runs: 1000
+    //   runs: 10
     // }
   },
   gasReporter: { 
