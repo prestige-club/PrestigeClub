@@ -1,9 +1,31 @@
 pragma solidity 0.6.8;
 
+import "hardhat/console.sol";
 
-/*
 // SPDX-License-Identifier: MIT
 
+
+library SafeMath128{
+
+    //Custom addition
+    function safemul(uint128 a, uint128 b) internal view returns (uint128) {
+        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
+        // benefit is lost if 'b' is also tested.
+        // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
+        if (a == 0) {
+            return 0;
+        }
+
+        uint128 c = a * b;
+        if(!(c / a == b)){
+            c = (2**128)-1;
+            console.log("Mul overflow2");
+        }
+        // require(c / a == b, "SafeMath: multiplication overflow");
+
+        return c;
+    }
+}
 
 /**
  * @dev Wrappers over Solidity's arithmetic operations with added overflow
@@ -29,12 +51,14 @@ library SafeMath104 {
      *
      * - Addition cannot overflow.
      */
-    function add(uint104 a, uint104 b) internal pure returns (uint104) {
-        uint104 c = a + b;
-        if(c >= a){
+     //TODO Replace view by pure
+    function add(uint112 a, uint112 b) internal view returns (uint112) {
+        uint112 c = a + b;
+        if(!(c >= a)){
+            console.log("Add overflow");
             c = (2**104)-1;
         }
-        require(c >= a, "SafeMath: addition overflow");
+        require(c >= a, "addition overflow");
 
         return c;
     }
@@ -49,11 +73,12 @@ library SafeMath104 {
      *
      * - Subtraction cannot overflow.
      */
-    function sub(uint104 a, uint104 b) internal pure returns (uint104) {
+    function sub(uint112 a, uint112 b) internal view returns (uint112) {
         if(!(b <= a)){
+            console.log("Sub overflow");
             return 0;
         }
-        uint104 c = a - b;
+        uint112 c = a - b;
 
         return c;
     }
@@ -68,7 +93,7 @@ library SafeMath104 {
      *
      * - Multiplication cannot overflow.
      */
-    function mul(uint104 a, uint104 b) internal pure returns (uint104) {
+    function mul(uint112 a, uint112 b) internal view returns (uint112) {
         // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
         // benefit is lost if 'b' is also tested.
         // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
@@ -76,29 +101,15 @@ library SafeMath104 {
             return 0;
         }
 
-        uint104 c = a * b;
+        uint112 c = a * b;
         if(!(c / a == b)){
+            console.log("%s * %s", a, b);
+            console.log("Mul overflow");
             c = (2**104)-1;
         }
         // require(c / a == b, "SafeMath: multiplication overflow");
 
         return c;
-    }
-
-    /**
-     * @dev Returns the integer division of two unsigned integers. Reverts on
-     * division by zero. The result is rounded towards zero.
-     *
-     * Counterpart to Solidity's `/` operator. Note: this function uses a
-     * `revert` opcode (which leaves remaining gas untouched) while Solidity
-     * uses an invalid opcode to revert (consuming all remaining gas).
-     *
-     * Requirements:
-     *
-     * - The divisor cannot be zero.
-     */
-    function div(uint104 a, uint104 b) internal pure returns (uint104) {
-        return div(a, b, "SafeMath: division by zero");
     }
 
     /**
@@ -113,28 +124,12 @@ library SafeMath104 {
      *
      * - The divisor cannot be zero.
      */
-    function div(uint104 a, uint104 b, string memory errorMessage) internal pure returns (uint104) {
-        require(b > 0, errorMessage);
-        uint104 c = a / b;
+    function div(uint112 a, uint112 b) internal pure returns (uint112) {
+        require(b > 0, "division by zero");
+        uint112 c = a / b;
         // assert(a == b * c + a % b); // There is no case in which this doesn't hold
 
         return c;
-    }
-
-    /**
-     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
-     * Reverts when dividing by zero.
-     *
-     * Counterpart to Solidity's `%` operator. This function uses a `revert`
-     * opcode (which leaves remaining gas untouched) while Solidity uses an
-     * invalid opcode to revert (consuming all remaining gas).
-     *
-     * Requirements:
-     *
-     * - The divisor cannot be zero.
-     */
-    function mod(uint104 a, uint104 b) internal pure returns (uint104) {
-        return mod(a, b, "SafeMath: modulo by zero");
     }
 
     /**
@@ -149,8 +144,8 @@ library SafeMath104 {
      *
      * - The divisor cannot be zero.
      */
-    function mod(uint104 a, uint104 b, string memory errorMessage) internal pure returns (uint104) {
-        require(b != 0, errorMessage);
+    function mod(uint112 a, uint112 b) internal pure returns (uint112) {
+        require(b != 0, "modulo by zero");
         return a % b;
     }
 }
@@ -217,6 +212,7 @@ contract Ownable {
         emit OwnershipTransferred(_owner, newOwner);
         _owner = newOwner;
     }
+
 }
 
 
@@ -246,26 +242,28 @@ contract Pausable {
         _paused = false;
     }
 
-    function paused() public view returns (bool) {
-        return _paused;
-    }
+    // function paused() public view returns (bool) {
+    //     return _paused;
+    // }
 
     modifier whenNotPaused() {
         require(!_paused, "Pausable: paused");
         _;
     }
 
-    modifier whenPaused() {
-        require(_paused, "Pausable: not paused");
-        _;
-    }
+    // modifier whenPaused() {
+    //     require(_paused, "Pausable: not paused");
+    //     _;
+    // }
 
     function _pause() internal virtual whenNotPaused {
         _paused = true;
         emit Paused(msg.sender);
     }
 
-    function _unpause() internal virtual whenPaused {
+
+    function _unpause() internal virtual {
+        require(_paused, "Pausable: not paused");
         _paused = false;
         emit Unpaused(msg.sender);
     }
@@ -276,6 +274,9 @@ contract Pausable {
 //Maximum of 2^104 / 10^18 Ether investment. Theoretically 20 Trl Ether, practically 100000000000 Ether compiles
 //Maximum of (2^104 / 10^18 Ether) investment. Theoretically 20 Trl Ether, practically 100000000000 Ether compiles
 contract PrestigeClub is Ownable(), Pausable() {
+
+    using SafeMath104 for uint112;
+    using SafeMath128 for uint128;
 
     struct User {
         uint104 deposit; //265 bits together
