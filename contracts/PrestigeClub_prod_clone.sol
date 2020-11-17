@@ -665,13 +665,13 @@ contract PrestigeClub is Ownable(), Pausable() {
         
         uint104 transfer = amount / 20 * 19;
         
-        payable(msg.sender).transfer(transfer);
-        
         users[msg.sender].payout -= amount;
         
-        emit Withdraw(msg.sender, amount);
+        payable(msg.sender).transfer(transfer);
         
         payable(owner()).transfer(amount - transfer);
+        
+        emit Withdraw(msg.sender, amount);
         
     }
 
