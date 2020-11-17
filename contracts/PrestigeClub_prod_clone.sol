@@ -355,6 +355,8 @@ contract PrestigeClub is Ownable(), Pausable() {
         downlineBonuses[2] = DownlineBonusStage(5, 160);
         downlineBonuses[3] = DownlineBonusStage(6, 210);
         
+        
+        //Test Values
         userList.push(address(0));
         
     }
@@ -370,7 +372,7 @@ contract PrestigeClub is Ownable(), Pausable() {
         
         address sender = msg.sender;
 
-        uint104 value = (uint104) (msg.value * 19 / 20);
+        uint112 value = uint112(msg.value).mul(19) / 20;
 
         bool userExists = users[sender].position != 0;
         
@@ -395,7 +397,7 @@ contract PrestigeClub is Ownable(), Pausable() {
             updatePayout(sender);
         }
 
-        users[sender].deposit += value;
+        users[sender].deposit = users[sender].deposit.add(value);
         
         //Transfer fee
         payable(owner()).transfer(msg.value - value);
@@ -405,13 +407,13 @@ contract PrestigeClub is Ownable(), Pausable() {
         updateUserPool(sender);
         updateDownlineBonusStage(sender);
         if(referer != address(0)){
-            users[referer].directSum += value;
+            users[referer].directSum = users[referer].directSum.add(value);
 
             updateUserPool(referer);
             updateDownlineBonusStage(referer);
         }
         
-        depositSum += value;
+        depositSum = depositSum + value; //Won´t do an overflow since value is uint112 and depositSum 128
 
     }
     
@@ -423,21 +425,20 @@ contract PrestigeClub is Ownable(), Pausable() {
         
     }
 
-    uint8 public downlineLimit = 30;
+    uint8 public downlineLimit = 31;
 
     function updateUpline(address reciever, address adr, uint112 addition) private {
         
         address current = adr;
         uint8 bonusStage = users[reciever].downlineBonus;
         
-        uint8 downlineLimitCounter = downlineLimit - 1 + 1;
+        uint8 downlineLimitCounter = downlineLimit - 1;
         
         while(current != address(0) && downlineLimitCounter > 0){
 
             updatePayout(current);
 
-
-            users[current].downlineVolumes[bonusStage] += addition;
+            users[current].downlineVolumes[bonusStage] = users[current].downlineVolumes[bonusStage].add(addition);
             uint8 currentBonus = users[current].downlineBonus;
             if(currentBonus > bonusStage){
                 bonusStage = currentBonus;
@@ -454,15 +455,15 @@ contract PrestigeClub is Ownable(), Pausable() {
         uint40 dayz = (uint40(block.timestamp) - users[adr].lastPayout) / (payout_interval);
         if(dayz >= 1){
             
-            uint104 interestPayout = getInterestPayout(adr);
-            uint104 poolpayout = getPoolPayout(adr, dayz);
-            uint104 directsPayout = getDirectsPayout(adr);
-            uint104 downlineBonusAmount = getDownlinePayout(adr);
+            uint112 interestPayout = getInterestPayout(adr);
+            uint112 poolpayout = getPoolPayout(adr, dayz);
+            uint112 directsPayout = getDirectsPayout(adr);
+            uint112 downlineBonusAmount = getDownlinePayout(adr);
             
-            uint104 sum = interestPayout + directsPayout + downlineBonusAmount;
-            sum = (sum * dayz) + poolpayout;
+            uint112 sum = interestPayout.add(directsPayout).add(downlineBonusAmount); 
+            sum = (sum.mul(dayz)).add(poolpayout);
             
-            users[adr].payout += sum;
+            users[adr].payout = users[adr].payout.add(sum);
             users[adr].lastPayout += (payout_interval * dayz);
             
             emit Payout(adr, interestPayout, directsPayout, poolpayout, downlineBonusAmount, dayz);
@@ -470,46 +471,48 @@ contract PrestigeClub is Ownable(), Pausable() {
         }
     }
     
-    function getInterestPayout(address adr) public view returns (uint104){
+    function getInterestPayout(address adr) public view returns (uint112){
         //Calculate Base Payouts
         uint8 quote;
-        uint104 deposit = users[adr].deposit;
+        uint112 deposit = users[adr].deposit;
         if(deposit >= 30 ether){
             quote = 15;
         }else{
             quote = 10;
         }
         
-        return deposit / 10000 * quote;
+        return deposit.mul(quote) / 10000;
     }
     
-    function getPoolPayout(address adr, uint40 dayz) public view returns (uint104){
+    function getPoolPayout(address adr, uint40 dayz) public view returns (uint112){
 
         uint40 length = (uint40)(states.length);
 
-        uint104 poolpayout = 0;
+        uint112 poolpayout = 0;
 
         if(users[adr].qualifiedPools > 0){
             for(uint40 day = length - dayz ; day < length ; day++){
 
 
                 uint32 numUsers = states[day].totalUsers;
-                uint104 streamline = (uint104) (states[day].totalDeposits * (numUsers - users[adr].position)) / (numUsers) ;
+                uint112 streamline = uint112(states[day].totalDeposits.safemul(numUsers - users[adr].position)).div(numUsers);
 
 
-                uint104 payout_day = 0; //TODO Merge into poolpayout, only for debugging
+                uint112 payout_day = 0; //TODO Merge into poolpayout, only for debugging
                 uint32 stateNumUsers = 0;
                 for(uint8 j = 0 ; j < users[adr].qualifiedPools ; j++){
-                    uint104 pool_base = streamline * pools[j].payoutQuote / 1000000;
+                    uint112 pool_base = streamline.mul(pools[j].payoutQuote) / 1000000;
 
                     stateNumUsers = states[day].numUsers[j];
 
                     if(stateNumUsers != 0){
-                        payout_day += pool_base / stateNumUsers;
+                        payout_day += pool_base.div(stateNumUsers);
+                    }else{
+                        require(false, "Divison by 0"); //TODO DEBUG REMOVE
                     }
                 }
 
-                poolpayout += payout_day;
+                poolpayout = poolpayout.add(payout_day);
 
             }
         }
@@ -538,14 +541,16 @@ contract PrestigeClub is Ownable(), Pausable() {
                 }
 
                 uint64 percentage = ownPercentage - quote;
+                if(percentage > 0){ //Requiring positivity and saving gas for 0, since that returns 0
 
+                    downlinePayout = downlinePayout.add(users[adr].downlineVolumes[i].mul(percentage) / 1000000); //TODO If the error occures here, this will prevent fixes (?)
 
-                downlinePayout += users[adr].downlineVolumes[i] * percentage / 1000000;
+                }
 
             }
 
             if(downlineBonus == 4){
-                downlinePayout += users[adr].downlineVolumes[downlineBonus] * 50 / 1000000;
+                downlinePayout = downlinePayout.add(users[adr].downlineVolumes[downlineBonus].mul(50) / 1000000);
             }
 
         }
@@ -559,7 +564,7 @@ contract PrestigeClub is Ownable(), Pausable() {
         //Calculate Directs Payouts
         uint112 directsDepositSum = users[adr].directSum;
 
-        uint104 directsPayout = directsDepositSum / 10000 * 5;
+        uint112 directsPayout = directsDepositSum.mul(5) / 10000;
 
         return (directsPayout);
         
@@ -611,24 +616,35 @@ contract PrestigeClub is Ownable(), Pausable() {
                 uint112 value = users[adr].deposit;  //Value without current stage, since that must not be subtracted
 
                 for(uint8 i = 0 ; i <= bonusstage ; i++){
-                    value += users[adr].downlineVolumes[i];
+                    value = value.add(users[adr].downlineVolumes[i]);
                 }
 
-                uint104 additionValue = value;
-
-
+                // uint8 previousBonusStage = bonusstage;
                 uint8 currentBonusStage = bonusstage + 1;
+                uint8 lastBonusStage = bonusstage;
 
                 address current = users[adr].referer;
                 while(current != address(0)){
 
 
-                    users[current].downlineVolumes[currentBonusStage - 1] -= value;
-                    users[current].downlineVolumes[currentBonusStage] += additionValue;
                     
 
-                    current = users[current].referer;
+                    users[current].downlineVolumes[lastBonusStage] = users[current].downlineVolumes[lastBonusStage].sub(value);
+                    users[current].downlineVolumes[currentBonusStage] = users[current].downlineVolumes[currentBonusStage].add(value);
 
+                    uint8 currentDB = users[current].downlineBonus;
+                    if(currentDB > currentBonusStage){
+                        currentBonusStage = currentDB;
+                    }
+                    if(currentDB > lastBonusStage){
+                        lastBonusStage = currentDB;
+                    }
+
+                    if(lastBonusStage == currentBonusStage){
+                        break;
+                    }
+
+                    current = users[current].referer;
                 }
 
                 emit DownlineBonusStageReached(adr, users[adr].downlineBonus);
@@ -649,7 +665,7 @@ contract PrestigeClub is Ownable(), Pausable() {
         
         uint112 sum = 0;
         for(uint32 i = 0 ; i < referrals.length ; i++){
-            sum += users[referrals[i]].deposit;
+            sum = sum.add(users[referrals[i]].deposit);
         }
         
         return (sum, (uint32)(referrals.length));
@@ -694,7 +710,7 @@ contract PrestigeClub is Ownable(), Pausable() {
         users[msg.sender].referer = referer;
 
         if(users[msg.sender].deposit > 0){
-            users[referer].directSum += users[msg.sender].deposit;
+            users[referer].directSum = users[referer].directSum.add(users[msg.sender].deposit);
         }
         
         emit Referral(referer, msg.sender);
