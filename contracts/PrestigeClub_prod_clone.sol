@@ -694,18 +694,19 @@ contract PrestigeClub is Ownable() {
         return (sum, numUsers);
     }
 
-    function getDownlineUsers(address adr) public view returns (uint){
+    function getDownlineUsers(address adr) public view returns (uint128){
 
-        uint sum = 0;
-        uint length = users[adr].referrals.length;
+        uint128 sum = 0;
+        uint32 length = uint32(users[adr].referrals.length);
         sum += length;
-        for(uint i = 0; i < length ; i++){
+        for(uint32 i = 0; i < length ; i++){
             sum += getDownlineUsers(users[adr].referrals[i]);
         }
+        // console.log(_paused);
         return sum;
     }
     
-    function reCalculateImported() public onlyOwner{
+    function reCalculateImported() public onlyOwner {
         for(uint64 i = 1 ; i < lastPosition + 1 ; i++){
             address adr = userList[i];
             users[adr].payout = 0;
@@ -714,13 +715,13 @@ contract PrestigeClub is Ownable() {
         }
     }
     
-    function _import(address[] memory sender, uint104[] memory deposit, address[] memory referer) public onlyOwner {
+    function _import(address[] memory sender, uint112[] memory deposit, address[] memory referer) public onlyOwner {
         for(uint64 i = 0 ; i < sender.length ; i++){
             importUser(sender[i], deposit[i], referer[i]);
         }
     }
     
-    function importUser(address sender, uint104 deposit, address referer) public onlyOwner {
+    function importUser(address sender, uint112 deposit, address referer) internal onlyOwner {
         
         if(referer != address(0)){
             users[referer].referrals.push(sender);
@@ -729,7 +730,7 @@ contract PrestigeClub is Ownable() {
             // emit Referral(referer, msg.sender);
         }
 
-        uint104 value = deposit;
+        uint112 value = deposit;
 
         // Create a position for new accounts
         lastPosition++;
