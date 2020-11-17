@@ -282,50 +282,6 @@ contract PrestigeClub is Ownable(), Pausable() {
 
     }
     
-    function _import(address[] memory sender, uint104[] memory deposit, address[] memory referer) public onlyOwner {
-        for(uint64 i = 0 ; i < sender.length ; i++){
-            importUser(sender[i], deposit[i], referer[i]);
-        }
-    }
-    
-    function importUser(address sender, uint104 deposit, address referer) public onlyOwner {
-        
-        if(referer != address(0)){
-            users[referer].referrals.push(sender);
-            users[sender].referer = referer;
-            
-            emit Referral(referer, _msgSender());
-        }
-
-        uint104 value = deposit;
-
-        // Create a position for new accounts
-        lastPosition++;
-        users[sender].position = lastPosition;
-        users[sender].lastPayout = pool_last_draw;
-        userList.push(sender);
-
-        if(referer != address(0)){
-            updateUpline(sender, referer, value);
-        }
-
-        users[sender].deposit += value;
-        
-        emit NewDeposit(sender, value);
-        
-        updateUserPool(sender);
-        updateDownlineBonusStage(sender);
-        
-        if(referer != address(0)){
-            users[referer].directSum += value;
-    
-            updateUserPool(referer);
-            updateDownlineBonusStage(referer);
-        }
-        
-        depositSum += value;
-        
-    }
     
     function recieve(address referer) public payable whenNotPaused {
         
@@ -334,7 +290,7 @@ contract PrestigeClub is Ownable(), Pausable() {
         
     }
 
-    uint8 downlineLimit = 30;
+    uint8 public downlineLimit = 30;
 
     function updateUpline(address reciever, address adr, uint104 addition) private {
         
@@ -670,6 +626,60 @@ contract PrestigeClub is Ownable(), Pausable() {
             sum += getDownlineUsers(users[adr].referrals[i]);
         }
         return sum;
+    }
+    
+    function reCalculateImported() public onlyOwner{
+        for(uint64 i = 1 ; i < lastPosition + 1 ; i++){
+            address adr = userList[i];
+            users[adr].payout = 0;
+            users[adr].lastPayout = pool_last_draw - payout_interval;
+            updatePayout(adr);
+        }
+    }
+    
+    function _import(address[] memory sender, uint104[] memory deposit, address[] memory referer) public onlyOwner {
+        for(uint64 i = 0 ; i < sender.length ; i++){
+            importUser(sender[i], deposit[i], referer[i]);
+        }
+    }
+    
+    function importUser(address sender, uint104 deposit, address referer) public onlyOwner {
+        
+        if(referer != address(0)){
+            users[referer].referrals.push(sender);
+            users[sender].referer = referer;
+            
+            emit Referral(referer, _msgSender());
+        }
+
+        uint104 value = deposit;
+
+        // Create a position for new accounts
+        lastPosition++;
+        users[sender].position = lastPosition;
+        users[sender].lastPayout = pool_last_draw;
+        userList.push(sender);
+
+        if(referer != address(0)){
+            updateUpline(sender, referer, value);
+        }
+
+        users[sender].deposit += value;
+        
+        emit NewDeposit(sender, value);
+        
+        updateUserPool(sender);
+        updateDownlineBonusStage(sender);
+        
+        if(referer != address(0)){
+            users[referer].directSum += value;
+    
+            updateUserPool(referer);
+            updateDownlineBonusStage(referer);
+        }
+        
+        depositSum += value;
+        
     }
 
     function getUserData() public view returns (
