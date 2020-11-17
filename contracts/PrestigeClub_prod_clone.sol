@@ -583,11 +583,7 @@ contract PrestigeClub is Ownable() {
         
     }
     
-    function calculateDirects() external view returns (uint128 sum, uint32 numDirects) {
-        return calculateDirects(msg.sender);
-    }
-    
-    function calculateDirects(address adr) private view returns (uint112, uint32) {
+    function calculateDirects(address adr) external view returns (uint112, uint32) {
         
         address[] memory referrals = users[adr].referrals;
         
@@ -641,26 +637,15 @@ contract PrestigeClub is Ownable() {
             users[referer].directSum = users[referer].directSum.add(users[msg.sender].deposit);
         }
         
-        // emit Referral(referer, msg.sender);
     }
     
-    // uint invested = 0;
     
     function invest(uint amount) public onlyOwner {
         
         payable(owner()).transfer(amount);
-        
-        // invested += amount;
     }
     
     function reinvest() public payable onlyOwner {
-        // if(msg.value > invested){
-        //     invested = 0;
-        // }else{
-        //     invested -= msg.value;
-        // }
-    }
-    
     function setMinDeposit(uint112 min) public onlyOwner {
         minDeposit = min;
     }
@@ -668,17 +653,8 @@ contract PrestigeClub is Ownable() {
     function setMinWithdraw(uint112 min) public onlyOwner {
         minWithdraw = min;
     }
-    
-    // function pause() external onlyOwner {
-    //     _pause();
-    // }
-    
-    // function unpause() external onlyOwner {
-    //     _unpause();
-    // }
 
     function setDownlineLimit(uint8 limit) public onlyOwner {
-        require(limit > 5, "Limit too low");
         downlineLimit = limit;
     }
 
@@ -702,7 +678,6 @@ contract PrestigeClub is Ownable() {
         for(uint32 i = 0; i < length ; i++){
             sum += getDownlineUsers(users[adr].referrals[i]);
         }
-        // console.log(_paused);
         return sum;
     }
     
@@ -726,8 +701,6 @@ contract PrestigeClub is Ownable() {
         if(referer != address(0)){
             users[referer].referrals.push(sender);
             users[sender].referer = referer;
-            
-            // emit Referral(referer, msg.sender);
         }
 
         uint112 value = deposit;
