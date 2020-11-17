@@ -198,60 +198,6 @@ contract Ownable {
 
 }
 
-
-/**
- * @dev Contract module which allows children to implement an emergency stop
- * mechanism that can be triggered by an authorized account.
- *
- * This module is used through inheritance. It will make available the
- * modifiers `whenNotPaused` and `whenPaused`, which can be applied to
- * the functions of your contract. Note that they will not be pausable by
- * simply including this module, only once the modifiers are put in place.
- */
-// contract Pausable{
-//     /**
-//      * @dev Emitted when the pause is triggered by `account`.
-//      */
-//     // event Paused(address account);
-
-//     // /**
-//     //  * @dev Emitted when the pause is lifted by `account`.
-//     //  */
-//     // event Unpaused(address account);
-
-//     bool private _paused;
-
-//     constructor () internal {
-//         _paused = false;
-//     }
-
-//     // function paused() public view returns (bool) {
-//     //     return _paused;
-//     // }
-
-//     modifier whenNotPaused() {
-//         require(!_paused, "Pausable: paused");
-//         _;
-//     }
-
-//     // modifier whenPaused() {
-//     //     require(_paused, "Pausable: not paused");
-//     //     _;
-//     // }
-
-//     // function _pause() internal virtual whenNotPaused  {
-//     //     _paused = true;
-//     //     // emit Paused(msg.sender);
-//     // }
-
-
-//     // function _unpause() internal virtual  {
-//     //     require(_paused, "Pausable: not paused");
-//     //     _paused = false;
-//     //     // emit Unpaused(msg.sender);
-//     // }
-// }
-
 //Restrictions:
 //only 2^32 Users
 //Maximum of 2^104 / 10^18 Ether investment. Theoretically 20 Trl Ether, practically 100000000000 Ether compiles
