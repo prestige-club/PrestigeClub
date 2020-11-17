@@ -56,7 +56,7 @@ library SafeMath104 {
         uint112 c = a + b;
         if(!(c >= a)){
             console.log("Add overflow");
-            c = (2**104)-1;
+            c = (2**112)-1;
         }
         require(c >= a, "addition overflow");
 
@@ -105,7 +105,7 @@ library SafeMath104 {
         if(!(c / a == b)){
             console.log("%s * %s", a, b);
             console.log("Mul overflow");
-            c = (2**104)-1;
+            c = (2**112)-1;
         }
         // require(c / a == b, "SafeMath: multiplication overflow");
 
