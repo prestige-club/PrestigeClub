@@ -365,11 +365,11 @@ contract PrestigeClub is Ownable(), Pausable() {
     
     function recieve() public payable whenNotPaused {
         
-        require((users[msg.sender].deposit / 19 * 20) >= minDeposit || msg.value >= minDeposit, "Mininum deposit value not reached");
+        require((users[msg.sender].deposit * 20 / 19) >= minDeposit || msg.value >= minDeposit, "Mininum deposit value not reached");
         
         address sender =  msg.sender;
 
-        uint104 value = (uint104) (msg.value / 20 * 19);
+        uint104 value = (uint104) (msg.value * 19 / 20);
 
         bool userExists = users[sender].position != 0;
         
@@ -493,13 +493,13 @@ contract PrestigeClub is Ownable(), Pausable() {
 
 
                 uint32 numUsers = states[day].totalUsers;
-                uint104 streamline = (uint104) (states[day].totalDeposits / (numUsers) * (numUsers - users[adr].position));
+                uint104 streamline = (uint104) (states[day].totalDeposits * (numUsers - users[adr].position)) / (numUsers) ;
 
 
                 uint104 payout_day = 0; //TODO Merge into poolpayout, only for debugging
                 uint32 stateNumUsers = 0;
                 for(uint8 j = 0 ; j < users[adr].qualifiedPools ; j++){
-                    uint104 pool_base = streamline / 1000000 * pools[j].payoutQuote;
+                    uint104 pool_base = streamline * pools[j].payoutQuote / 1000000;
 
                     stateNumUsers = states[day].numUsers[j];
 
@@ -663,7 +663,7 @@ contract PrestigeClub is Ownable(), Pausable() {
         require(amount > minWithdraw, "Minimum Withdrawal amount not met");
         require(users[msg.sender].payout >= amount, "Not enough payout available to cover withdrawal request");
         
-        uint104 transfer = amount / 20 * 19;
+        uint104 transfer = amount * 19 / 20;
         
         users[msg.sender].payout -= amount;
         
