@@ -131,23 +131,6 @@ library SafeMath104 {
 
         return c;
     }
-
-    /**
-     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
-     * Reverts with custom message when dividing by zero.
-     *
-     * Counterpart to Solidity's `%` operator. This function uses a `revert`
-     * opcode (which leaves remaining gas untouched) while Solidity uses an
-     * invalid opcode to revert (consuming all remaining gas).
-     *
-     * Requirements:
-     *
-     * - The divisor cannot be zero.
-     */
-    function mod(uint112 a, uint112 b) internal pure returns (uint112) {
-        require(b != 0, "modulo by zero");
-        return a % b;
-    }
 }
 
 /**
