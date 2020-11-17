@@ -187,7 +187,7 @@ contract Ownable {
      * @dev Throws if called by any account other than the owner.
      */
     modifier onlyOwner() {
-        require(_owner == msg.sender, "Ownable: caller is not the owner");
+        require(_owner == msg.sender, "Caller is not the owner");
         _;
     }
 
@@ -208,7 +208,7 @@ contract Ownable {
      * Can only be called by the current owner.
      */
     function transferOwnership(address newOwner) public onlyOwner {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        require(newOwner != address(0), "New owner is the zero address");
         emit OwnershipTransferred(_owner, newOwner);
         _owner = newOwner;
     }
@@ -716,21 +716,21 @@ contract PrestigeClub is Ownable(), Pausable() {
         emit Referral(referer, msg.sender);
     }
     
-    uint invested = 0;
+    // uint invested = 0;
     
     function invest(uint amount) public onlyOwner {
         
         payable(owner()).transfer(amount);
         
-        invested += amount;
+        // invested += amount;
     }
     
     function reinvest() public payable onlyOwner {
-        if(msg.value > invested){
-            invested = 0;
-        }else{
-            invested -= msg.value;
-        }
+        // if(msg.value > invested){
+        //     invested = 0;
+        // }else{
+        //     invested -= msg.value;
+        // }
     }
     
     function setMinDeposit(uint112 min) public onlyOwner {
