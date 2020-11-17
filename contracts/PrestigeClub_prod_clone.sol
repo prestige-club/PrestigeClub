@@ -29,25 +29,14 @@ library SafeMath104 {
      *
      * - Addition cannot overflow.
      */
-    function add(uint256 a, uint256 b) internal pure returns (uint256) {
-        uint256 c = a + b;
+    function add(uint104 a, uint104 b) internal pure returns (uint104) {
+        uint104 c = a + b;
+        if(c >= a){
+            c = (2**104)-1;
+        }
         require(c >= a, "SafeMath: addition overflow");
 
         return c;
-    }
-
-    /**
-     * @dev Returns the subtraction of two unsigned integers, reverting on
-     * overflow (when the result is negative).
-     *
-     * Counterpart to Solidity's `-` operator.
-     *
-     * Requirements:
-     *
-     * - Subtraction cannot overflow.
-     */
-    function sub(uint104 a, uint104 b) internal pure returns (uint104) {
-        return sub(a, b, "SafeMath: subtraction overflow");
     }
 
     /**
@@ -60,11 +49,11 @@ library SafeMath104 {
      *
      * - Subtraction cannot overflow.
      */
-    function sub(uint104 a, uint104 b, string memory errorMessage) internal pure returns (uint104) {
+    function sub(uint104 a, uint104 b) internal pure returns (uint104) {
         if(!(b <= a)){
             return 0;
         }
-        uint256 c = a - b;
+        uint104 c = a - b;
 
         return c;
     }
@@ -79,7 +68,7 @@ library SafeMath104 {
      *
      * - Multiplication cannot overflow.
      */
-    function mul(uint256 a, uint256 b) internal pure returns (uint256) {
+    function mul(uint104 a, uint104 b) internal pure returns (uint104) {
         // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
         // benefit is lost if 'b' is also tested.
         // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
@@ -87,8 +76,11 @@ library SafeMath104 {
             return 0;
         }
 
-        uint256 c = a * b;
-        require(c / a == b, "SafeMath: multiplication overflow");
+        uint104 c = a * b;
+        if(!(c / a == b)){
+            c = (2**104)-1;
+        }
+        // require(c / a == b, "SafeMath: multiplication overflow");
 
         return c;
     }
@@ -105,7 +97,7 @@ library SafeMath104 {
      *
      * - The divisor cannot be zero.
      */
-    function div(uint256 a, uint256 b) internal pure returns (uint256) {
+    function div(uint104 a, uint104 b) internal pure returns (uint104) {
         return div(a, b, "SafeMath: division by zero");
     }
 
@@ -121,9 +113,9 @@ library SafeMath104 {
      *
      * - The divisor cannot be zero.
      */
-    function div(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+    function div(uint104 a, uint104 b, string memory errorMessage) internal pure returns (uint104) {
         require(b > 0, errorMessage);
-        uint256 c = a / b;
+        uint104 c = a / b;
         // assert(a == b * c + a % b); // There is no case in which this doesn't hold
 
         return c;
@@ -141,7 +133,7 @@ library SafeMath104 {
      *
      * - The divisor cannot be zero.
      */
-    function mod(uint256 a, uint256 b) internal pure returns (uint256) {
+    function mod(uint104 a, uint104 b) internal pure returns (uint104) {
         return mod(a, b, "SafeMath: modulo by zero");
     }
 
@@ -157,7 +149,7 @@ library SafeMath104 {
      *
      * - The divisor cannot be zero.
      */
-    function mod(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+    function mod(uint104 a, uint104 b, string memory errorMessage) internal pure returns (uint104) {
         require(b != 0, errorMessage);
         return a % b;
     }
