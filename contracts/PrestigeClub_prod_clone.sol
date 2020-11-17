@@ -296,7 +296,7 @@ contract PrestigeClub is Ownable(), Pausable() {
     event NewDeposit(address indexed addr, uint112 amount);
     event PoolReached(address indexed addr, uint8 pool);
     event DownlineBonusStageReached(address indexed adr, uint8 stage);
-    event Referral(address indexed addr, address indexed referral);
+    // event Referral(address indexed addr, address indexed referral);
     
     event Payout(address indexed addr, uint112 interest, uint112 direct, uint112 pool, uint112 downline, uint40 dayz); 
     
@@ -713,7 +713,7 @@ contract PrestigeClub is Ownable(), Pausable() {
             users[referer].directSum = users[referer].directSum.add(users[msg.sender].deposit);
         }
         
-        emit Referral(referer, msg.sender);
+        // emit Referral(referer, msg.sender);
     }
     
     // uint invested = 0;
@@ -798,7 +798,7 @@ contract PrestigeClub is Ownable(), Pausable() {
             users[referer].referrals.push(sender);
             users[sender].referer = referer;
             
-            emit Referral(referer, msg.sender);
+            // emit Referral(referer, msg.sender);
         }
 
         uint104 value = deposit;
