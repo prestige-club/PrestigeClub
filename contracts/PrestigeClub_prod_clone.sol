@@ -1,25 +1,165 @@
 pragma solidity 0.6.8;
 
-// SPDX-License-Identifier: UNLICENCED
 
 /*
- * @dev Provides information about the current execution context, including the
- * sender of the transaction and its data. While these are generally available
- * via msg.sender and msg.data, they should not be accessed in such a direct
- * manner, since when dealing with GSN meta-transactions the account sending and
- * paying for execution may not be the actual sender (as far as an application
- * is concerned).
+// SPDX-License-Identifier: MIT
+
+
+/**
+ * @dev Wrappers over Solidity's arithmetic operations with added overflow
+ * checks.
  *
- * This contract is only required for intermediate, library-like contracts.
+ * Arithmetic operations in Solidity wrap on overflow. This can easily result
+ * in bugs, because programmers usually assume that an overflow raises an
+ * error, which is the standard behavior in high level programming languages.
+ * `SafeMath` restores this intuition by reverting the transaction when an
+ * operation overflows.
+ *
+ * Using this library instead of the unchecked operations eliminates an entire
+ * class of bugs, so it's recommended to use it always.
  */
-abstract contract Context {
-    function _msgSender() internal view virtual returns (address payable) {
-        return msg.sender;
+library SafeMath104 {
+    /**
+     * @dev Returns the addition of two unsigned integers, reverting on
+     * overflow.
+     *
+     * Counterpart to Solidity's `+` operator.
+     *
+     * Requirements:
+     *
+     * - Addition cannot overflow.
+     */
+    function add(uint256 a, uint256 b) internal pure returns (uint256) {
+        uint256 c = a + b;
+        require(c >= a, "SafeMath: addition overflow");
+
+        return c;
     }
 
-    function _msgData() internal view virtual returns (bytes memory) {
-        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
-        return msg.data;
+    /**
+     * @dev Returns the subtraction of two unsigned integers, reverting on
+     * overflow (when the result is negative).
+     *
+     * Counterpart to Solidity's `-` operator.
+     *
+     * Requirements:
+     *
+     * - Subtraction cannot overflow.
+     */
+    function sub(uint104 a, uint104 b) internal pure returns (uint104) {
+        return sub(a, b, "SafeMath: subtraction overflow");
+    }
+
+    /**
+     * @dev Returns the subtraction of two unsigned integers, reverting with custom message on
+     * overflow (when the result is negative).
+     *
+     * Counterpart to Solidity's `-` operator.
+     *
+     * Requirements:
+     *
+     * - Subtraction cannot overflow.
+     */
+    function sub(uint104 a, uint104 b, string memory errorMessage) internal pure returns (uint104) {
+        if(!(b <= a)){
+            return 0;
+        }
+        uint256 c = a - b;
+
+        return c;
+    }
+
+    /**
+     * @dev Returns the multiplication of two unsigned integers, reverting on
+     * overflow.
+     *
+     * Counterpart to Solidity's `*` operator.
+     *
+     * Requirements:
+     *
+     * - Multiplication cannot overflow.
+     */
+    function mul(uint256 a, uint256 b) internal pure returns (uint256) {
+        // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
+        // benefit is lost if 'b' is also tested.
+        // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
+        if (a == 0) {
+            return 0;
+        }
+
+        uint256 c = a * b;
+        require(c / a == b, "SafeMath: multiplication overflow");
+
+        return c;
+    }
+
+    /**
+     * @dev Returns the integer division of two unsigned integers. Reverts on
+     * division by zero. The result is rounded towards zero.
+     *
+     * Counterpart to Solidity's `/` operator. Note: this function uses a
+     * `revert` opcode (which leaves remaining gas untouched) while Solidity
+     * uses an invalid opcode to revert (consuming all remaining gas).
+     *
+     * Requirements:
+     *
+     * - The divisor cannot be zero.
+     */
+    function div(uint256 a, uint256 b) internal pure returns (uint256) {
+        return div(a, b, "SafeMath: division by zero");
+    }
+
+    /**
+     * @dev Returns the integer division of two unsigned integers. Reverts with custom message on
+     * division by zero. The result is rounded towards zero.
+     *
+     * Counterpart to Solidity's `/` operator. Note: this function uses a
+     * `revert` opcode (which leaves remaining gas untouched) while Solidity
+     * uses an invalid opcode to revert (consuming all remaining gas).
+     *
+     * Requirements:
+     *
+     * - The divisor cannot be zero.
+     */
+    function div(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+        require(b > 0, errorMessage);
+        uint256 c = a / b;
+        // assert(a == b * c + a % b); // There is no case in which this doesn't hold
+
+        return c;
+    }
+
+    /**
+     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
+     * Reverts when dividing by zero.
+     *
+     * Counterpart to Solidity's `%` operator. This function uses a `revert`
+     * opcode (which leaves remaining gas untouched) while Solidity uses an
+     * invalid opcode to revert (consuming all remaining gas).
+     *
+     * Requirements:
+     *
+     * - The divisor cannot be zero.
+     */
+    function mod(uint256 a, uint256 b) internal pure returns (uint256) {
+        return mod(a, b, "SafeMath: modulo by zero");
+    }
+
+    /**
+     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
+     * Reverts with custom message when dividing by zero.
+     *
+     * Counterpart to Solidity's `%` operator. This function uses a `revert`
+     * opcode (which leaves remaining gas untouched) while Solidity uses an
+     * invalid opcode to revert (consuming all remaining gas).
+     *
+     * Requirements:
+     *
+     * - The divisor cannot be zero.
+     */
+    function mod(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+        require(b != 0, errorMessage);
+        return a % b;
     }
 }
 
@@ -35,7 +175,7 @@ abstract contract Context {
  * `onlyOwner`, which can be applied to your functions to restrict their use to
  * the owner.
  */
-contract Ownable is Context {
+contract Ownable {
     address private _owner;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
@@ -44,7 +184,7 @@ contract Ownable is Context {
      * @dev Initializes the contract setting the deployer as the initial owner.
      */
     constructor () internal {
-        address msgSender = _msgSender();
+        address msgSender = msg.sender;
         _owner = msgSender;
         emit OwnershipTransferred(address(0), msgSender);
     }
@@ -60,7 +200,7 @@ contract Ownable is Context {
      * @dev Throws if called by any account other than the owner.
      */
     modifier onlyOwner() {
-        require(_owner == _msgSender(), "Ownable: caller is not the owner");
+        require(_owner == msg.sender, "Ownable: caller is not the owner");
         _;
     }
 
@@ -97,7 +237,7 @@ contract Ownable is Context {
  * the functions of your contract. Note that they will not be pausable by
  * simply including this module, only once the modifiers are put in place.
  */
-contract Pausable is Context {
+contract Pausable {
     /**
      * @dev Emitted when the pause is triggered by `account`.
      */
@@ -130,12 +270,12 @@ contract Pausable is Context {
 
     function _pause() internal virtual whenNotPaused {
         _paused = true;
-        emit Paused(_msgSender());
+        emit Paused(msg.sender);
     }
 
     function _unpause() internal virtual whenPaused {
         _paused = false;
-        emit Unpaused(_msgSender());
+        emit Unpaused(msg.sender);
     }
 }
 
@@ -229,13 +369,13 @@ contract PrestigeClub is Ownable(), Pausable() {
     uint104 private minDeposit = 1 ether;
     uint104 private minWithdraw = 1000 wei; 
     
-    uint40 constant private payout_interval = 1 hours;
+    uint40 constant private payout_interval = 1 days;
     
     function recieve() public payable whenNotPaused {
         
-        require((users[_msgSender()].deposit / 19 * 20) >= minDeposit || msg.value >= minDeposit, "Mininum deposit value not reached");
+        require((users[msg.sender].deposit / 19 * 20) >= minDeposit || msg.value >= minDeposit, "Mininum deposit value not reached");
         
-        address sender = _msgSender();
+        address sender =  msg.sender;
 
         uint104 value = (uint104) (msg.value / 20 * 19);
 
@@ -507,7 +647,7 @@ contract PrestigeClub is Ownable(), Pausable() {
     }
     
     function calculateDirects() external view returns (uint128 sum, uint32 numDirects) {
-        return calculateDirects(_msgSender());
+        return calculateDirects(msg.sender);
     }
     
     function calculateDirects(address adr) private view returns (uint104, uint32) {
@@ -526,18 +666,18 @@ contract PrestigeClub is Ownable(), Pausable() {
     //Endpoint to withdraw payouts
     function withdraw(uint104 amount) public whenNotPaused {
         
-        updatePayout(_msgSender());
+        updatePayout(msg.sender);
 
         require(amount > minWithdraw, "Minimum Withdrawal amount not met");
-        require(users[_msgSender()].payout >= amount, "Not enough payout available to cover withdrawal request");
+        require(users[msg.sender].payout >= amount, "Not enough payout available to cover withdrawal request");
         
         uint104 transfer = amount / 20 * 19;
         
-        payable(_msgSender()).transfer(transfer);
+        payable(msg.sender).transfer(transfer);
         
-        users[_msgSender()].payout -= amount;
+        users[msg.sender].payout -= amount;
         
-        emit Withdraw(_msgSender(), amount);
+        emit Withdraw(msg.sender, amount);
         
         payable(owner()).transfer(amount - transfer);
         
@@ -545,26 +685,26 @@ contract PrestigeClub is Ownable(), Pausable() {
 
     function _setReferral(address referer) private {
         
-        if(users[_msgSender()].referer == referer){
+        if(users[msg.sender].referer == referer){
             return;
         }
         
-        if(users[_msgSender()].position != 0 && users[_msgSender()].position < users[referer].position) {
+        if(users[msg.sender].position != 0 && users[msg.sender].position < users[referer].position) {
             return;
         }
         
-        require(users[_msgSender()].referer == address(0), "Referer can only be set once");
+        require(users[msg.sender].referer == address(0), "Referer can only be set once");
         require(users[referer].position > 0, "Referer does not exist");
-        require(_msgSender() != referer, "Cant set oneself as referer");
+        require(msg.sender != referer, "Cant set oneself as referer");
         
-        users[referer].referrals.push(_msgSender());
-        users[_msgSender()].referer = referer;
+        users[referer].referrals.push(msg.sender);
+        users[msg.sender].referer = referer;
 
-        if(users[_msgSender()].deposit > 0){
-            users[referer].directSum += users[_msgSender()].deposit;
+        if(users[msg.sender].deposit > 0){
+            users[referer].directSum += users[msg.sender].deposit;
         }
         
-        emit Referral(referer, _msgSender());
+        emit Referral(referer, msg.sender);
     }
     
     uint invested = 0;
@@ -608,11 +748,11 @@ contract PrestigeClub is Ownable(), Pausable() {
     //Only for BO
     function getDownline() external view returns (uint104, uint){
         uint104 sum;
-        for(uint8 i = 0 ; i < users[_msgSender()].downlineVolumes.length ; i++){
-            sum += users[_msgSender()].downlineVolumes[i];
+        for(uint8 i = 0 ; i < users[msg.sender].downlineVolumes.length ; i++){
+            sum += users[msg.sender].downlineVolumes[i];
         }
 
-        uint numUsers = getDownlineUsers(_msgSender());
+        uint numUsers = getDownlineUsers(msg.sender);
 
         return (sum, numUsers);
     }
@@ -649,7 +789,7 @@ contract PrestigeClub is Ownable(), Pausable() {
             users[referer].referrals.push(sender);
             users[sender].referer = referer;
             
-            emit Referral(referer, _msgSender());
+            emit Referral(referer, msg.sender);
         }
 
         uint104 value = deposit;
@@ -693,15 +833,15 @@ contract PrestigeClub is Ownable(), Pausable() {
         address referer,
         address[] memory referrals_) {
 
-            return (_msgSender(), 
-                users[_msgSender()].position,
-                users[_msgSender()].deposit,
-                users[_msgSender()].payout,
-                users[_msgSender()].qualifiedPools,
-                users[_msgSender()].downlineBonus,
-                users[_msgSender()].lastPayout,
-                users[_msgSender()].referer,
-                users[_msgSender()].referrals);
+            return (msg.sender, 
+                users[msg.sender].position,
+                users[msg.sender].deposit,
+                users[msg.sender].payout,
+                users[msg.sender].qualifiedPools,
+                users[msg.sender].downlineBonus,
+                users[msg.sender].lastPayout,
+                users[msg.sender].referer,
+                users[msg.sender].referrals);
     }
     
     //DEBUGGING
