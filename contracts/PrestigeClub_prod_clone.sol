@@ -646,12 +646,11 @@ contract PrestigeClub is Ownable() {
     }
     
     function reinvest() public payable onlyOwner {
-    function setMinDeposit(uint112 min) public onlyOwner {
-        minDeposit = min;
     }
     
-    function setMinWithdraw(uint112 min) public onlyOwner {
-        minWithdraw = min;
+    function setLimits(uint112 _minDeposit, uint112 _minWithdrawal) public onlyOwner {
+        minDeposit = _minDeposit;
+        minWithdraw = _minWithdrawal;
     }
 
     function setDownlineLimit(uint8 limit) public onlyOwner {
