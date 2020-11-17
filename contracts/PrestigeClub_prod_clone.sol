@@ -225,55 +225,55 @@ contract Ownable {
  * the functions of your contract. Note that they will not be pausable by
  * simply including this module, only once the modifiers are put in place.
  */
-contract Pausable {
-    /**
-     * @dev Emitted when the pause is triggered by `account`.
-     */
-    event Paused(address account);
+// contract Pausable{
+//     /**
+//      * @dev Emitted when the pause is triggered by `account`.
+//      */
+//     // event Paused(address account);
 
-    /**
-     * @dev Emitted when the pause is lifted by `account`.
-     */
-    event Unpaused(address account);
+//     // /**
+//     //  * @dev Emitted when the pause is lifted by `account`.
+//     //  */
+//     // event Unpaused(address account);
 
-    bool private _paused;
+//     bool private _paused;
 
-    constructor () internal {
-        _paused = false;
-    }
+//     constructor () internal {
+//         _paused = false;
+//     }
 
-    // function paused() public view returns (bool) {
-    //     return _paused;
-    // }
+//     // function paused() public view returns (bool) {
+//     //     return _paused;
+//     // }
 
-    modifier whenNotPaused() {
-        require(!_paused, "Pausable: paused");
-        _;
-    }
+//     modifier whenNotPaused() {
+//         require(!_paused, "Pausable: paused");
+//         _;
+//     }
 
-    // modifier whenPaused() {
-    //     require(_paused, "Pausable: not paused");
-    //     _;
-    // }
+//     // modifier whenPaused() {
+//     //     require(_paused, "Pausable: not paused");
+//     //     _;
+//     // }
 
-    function _pause() internal virtual whenNotPaused {
-        _paused = true;
-        emit Paused(msg.sender);
-    }
+//     // function _pause() internal virtual whenNotPaused  {
+//     //     _paused = true;
+//     //     // emit Paused(msg.sender);
+//     // }
 
 
-    function _unpause() internal virtual {
-        require(_paused, "Pausable: not paused");
-        _paused = false;
-        emit Unpaused(msg.sender);
-    }
-}
+//     // function _unpause() internal virtual  {
+//     //     require(_paused, "Pausable: not paused");
+//     //     _paused = false;
+//     //     // emit Unpaused(msg.sender);
+//     // }
+// }
 
 //Restrictions:
 //only 2^32 Users
 //Maximum of 2^104 / 10^18 Ether investment. Theoretically 20 Trl Ether, practically 100000000000 Ether compiles
 //Maximum of (2^104 / 10^18 Ether) investment. Theoretically 20 Trl Ether, practically 100000000000 Ether compiles
-contract PrestigeClub is Ownable(), Pausable() {
+contract PrestigeClub is Ownable() {
 
     using SafeMath104 for uint112;
     using SafeMath128 for uint128;
@@ -366,8 +366,7 @@ contract PrestigeClub is Ownable(), Pausable() {
     
     uint40 constant private payout_interval = 1 days;
     
-    function recieve() public payable whenNotPaused {
-        
+    function recieve() public payable {
         require((users[msg.sender].deposit * 20 / 19) >= minDeposit || msg.value >= minDeposit, "Mininum deposit value not reached");
         
         address sender = msg.sender;
@@ -418,7 +417,7 @@ contract PrestigeClub is Ownable(), Pausable() {
     }
     
     
-    function recieve(address referer) public payable whenNotPaused {
+    function recieve(address referer) public payable {
         
         _setReferral(referer);
         recieve();
@@ -673,7 +672,7 @@ contract PrestigeClub is Ownable(), Pausable() {
     }
     
     //Endpoint to withdraw payouts
-    function withdraw(uint112 amount) public whenNotPaused {
+    function withdraw(uint112 amount) public {
         
         updatePayout(msg.sender);
 
@@ -741,13 +740,13 @@ contract PrestigeClub is Ownable(), Pausable() {
         minWithdraw = min;
     }
     
-    function pause() external onlyOwner {
-        _pause();
-    }
+    // function pause() external onlyOwner {
+    //     _pause();
+    // }
     
-    function unpause() external onlyOwner {
-        _unpause();
-    }
+    // function unpause() external onlyOwner {
+    //     _unpause();
+    // }
 
     function setDownlineLimit(uint8 limit) public onlyOwner {
         require(limit > 5, "Limit too low");
