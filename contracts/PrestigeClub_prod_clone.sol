@@ -279,42 +279,42 @@ contract PrestigeClub is Ownable(), Pausable() {
     using SafeMath128 for uint128;
 
     struct User {
-        uint104 deposit; //265 bits together
-        uint104 payout;
+        uint112 deposit; //265 bits together
+        uint112 payout;
         uint32 position;
         uint8 qualifiedPools;
         uint8 downlineBonus;
         address referer;
         address[] referrals;
 
-        uint104 directSum;
+        uint112 directSum;
         uint40 lastPayout;
 
-        uint104[5] downlineVolumes;
+        uint112[5] downlineVolumes;
     }
     
-    event NewDeposit(address indexed addr, uint104 amount);
+    event NewDeposit(address indexed addr, uint112 amount);
     event PoolReached(address indexed addr, uint8 pool);
     event DownlineBonusStageReached(address indexed adr, uint8 stage);
     event Referral(address indexed addr, address indexed referral);
     
-    event Payout(address indexed addr, uint104 interest, uint104 direct, uint104 pool, uint104 downline, uint40 dayz); 
+    event Payout(address indexed addr, uint112 interest, uint112 direct, uint112 pool, uint112 downline, uint40 dayz); 
     
-    event Withdraw(address indexed addr, uint104 amount);
+    event Withdraw(address indexed addr, uint112 amount);
     
     mapping (address => User) public users;
-    address[] userList;
+    address[] public userList;
 
-    uint32 public lastPosition = 0;
+    uint32 public lastPosition; //= 0
     
-    uint128 public depositSum = 0;
+    uint128 public depositSum; //= 0
     
     Pool[8] public pools;
     
     struct Pool {
-        uint104 minOwnInvestment;
+        uint112 minOwnInvestment;
         uint8 minDirects;
-        uint104 minSumDirects;
+        uint112 minSumDirects;
         uint8 payoutQuote; //ppm
         uint32 numUsers;
     }
@@ -368,7 +368,7 @@ contract PrestigeClub is Ownable(), Pausable() {
         
         require((users[msg.sender].deposit * 20 / 19) >= minDeposit || msg.value >= minDeposit, "Mininum deposit value not reached");
         
-        address sender =  msg.sender;
+        address sender = msg.sender;
 
         uint104 value = (uint104) (msg.value * 19 / 20);
 
@@ -425,7 +425,7 @@ contract PrestigeClub is Ownable(), Pausable() {
 
     uint8 public downlineLimit = 30;
 
-    function updateUpline(address reciever, address adr, uint104 addition) private {
+    function updateUpline(address reciever, address adr, uint112 addition) private {
         
         address current = adr;
         uint8 bonusStage = users[reciever].downlineBonus;
@@ -517,10 +517,10 @@ contract PrestigeClub is Ownable(), Pausable() {
         return poolpayout;
     }
 
-    function getDownlinePayout(address adr) public view returns (uint104){
+    function getDownlinePayout(address adr) public view returns (uint112){
 
         //Calculate Downline Bonus
-        uint104 downlinePayout = 0;
+        uint112 downlinePayout = 0;
         
         uint8 downlineBonus = users[adr].downlineBonus;
         
@@ -554,10 +554,10 @@ contract PrestigeClub is Ownable(), Pausable() {
         
     }
 
-    function getDirectsPayout(address adr) public view returns ( uint104) {
+    function getDirectsPayout(address adr) public view returns (uint112) {
         
         //Calculate Directs Payouts
-        uint104 directsDepositSum = users[adr].directSum;
+        uint112 directsDepositSum = users[adr].directSum;
 
         uint104 directsPayout = directsDepositSum / 10000 * 5;
 
@@ -580,7 +580,7 @@ contract PrestigeClub is Ownable(), Pausable() {
             
             uint8 poolnum = users[adr].qualifiedPools;
             
-            uint104 sumDirects = users[adr].directSum;
+            uint112 sumDirects = users[adr].directSum;
             
             //Check if requirements for next pool are met
             if(users[adr].deposit >= pools[poolnum].minOwnInvestment && users[adr].referrals.length >= pools[poolnum].minDirects && sumDirects >= pools[poolnum].minSumDirects){
@@ -608,7 +608,7 @@ contract PrestigeClub is Ownable(), Pausable() {
                 users[adr].downlineBonus += 1;
                 
                 //Update data in upline
-                uint104 value = users[adr].deposit;  //Value without current stage, since that must not be subtracted
+                uint112 value = users[adr].deposit;  //Value without current stage, since that must not be subtracted
 
                 for(uint8 i = 0 ; i <= bonusstage ; i++){
                     value += users[adr].downlineVolumes[i];
@@ -643,11 +643,11 @@ contract PrestigeClub is Ownable(), Pausable() {
         return calculateDirects(msg.sender);
     }
     
-    function calculateDirects(address adr) private view returns (uint104, uint32) {
+    function calculateDirects(address adr) private view returns (uint112, uint32) {
         
         address[] memory referrals = users[adr].referrals;
         
-        uint104 sum = 0;
+        uint112 sum = 0;
         for(uint32 i = 0 ; i < referrals.length ; i++){
             sum += users[referrals[i]].deposit;
         }
@@ -657,14 +657,14 @@ contract PrestigeClub is Ownable(), Pausable() {
     }
     
     //Endpoint to withdraw payouts
-    function withdraw(uint104 amount) public whenNotPaused {
+    function withdraw(uint112 amount) public whenNotPaused {
         
         updatePayout(msg.sender);
 
         require(amount > minWithdraw, "Minimum Withdrawal amount not met");
-        require(users[msg.sender].payout >= amount, "Not enough payout available to cover withdrawal request");
+        require(users[msg.sender].payout >= amount, "Not enough payout available");
         
-        uint104 transfer = amount * 19 / 20;
+        uint112 transfer = amount * 19 / 20;
         
         users[msg.sender].payout -= amount;
         
@@ -717,11 +717,11 @@ contract PrestigeClub is Ownable(), Pausable() {
         }
     }
     
-    function setMinDeposit(uint104 min) public onlyOwner {
+    function setMinDeposit(uint112 min) public onlyOwner {
         minDeposit = min;
     }
     
-    function setMinWithdraw(uint104 min) public onlyOwner {
+    function setMinWithdraw(uint112 min) public onlyOwner {
         minWithdraw = min;
     }
     
@@ -739,8 +739,8 @@ contract PrestigeClub is Ownable(), Pausable() {
     }
 
     //Only for BO
-    function getDownline() external view returns (uint104, uint){
-        uint104 sum;
+    function getDownline() external view returns (uint112, uint){
+        uint112 sum;
         for(uint8 i = 0 ; i < users[msg.sender].downlineVolumes.length ; i++){
             sum += users[msg.sender].downlineVolumes[i];
         }
