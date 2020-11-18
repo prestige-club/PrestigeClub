@@ -8,7 +8,7 @@ import "hardhat/console.sol";
 library SafeMath128{
 
     //Custom addition
-    function safemul(uint128 a, uint128 b) internal view returns (uint128) {
+    function safemul(uint128 a, uint128 b) internal pure returns (uint128) {
         // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
         // benefit is lost if 'b' is also tested.
         // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
@@ -19,7 +19,7 @@ library SafeMath128{
         uint128 c = a * b;
         if(!(c / a == b)){
             c = (2**128)-1;
-            console.log("Mul overflow2");
+            // console.log("Mul overflow2");
         }
         // require(c / a == b, "SafeMath: multiplication overflow");
 
@@ -51,11 +51,10 @@ library SafeMath104 {
      *
      * - Addition cannot overflow.
      */
-     //TODO Replace view by pure
-    function add(uint112 a, uint112 b) internal view returns (uint112) {
+    function add(uint112 a, uint112 b) internal pure returns (uint112) {
         uint112 c = a + b;
         if(!(c >= a)){
-            console.log("Add overflow");
+            // console.log("Add overflow");
             c = (2**112)-1;
         }
         require(c >= a, "addition overflow");
@@ -73,9 +72,9 @@ library SafeMath104 {
      *
      * - Subtraction cannot overflow.
      */
-    function sub(uint112 a, uint112 b) internal view returns (uint112) {
+    function sub(uint112 a, uint112 b) internal pure returns (uint112) {
         if(!(b <= a)){
-            console.log("Sub overflow");
+            // console.log("Sub overflow");
             return 0;
         }
         uint112 c = a - b;
@@ -93,7 +92,7 @@ library SafeMath104 {
      *
      * - Multiplication cannot overflow.
      */
-    function mul(uint112 a, uint112 b) internal view returns (uint112) {
+    function mul(uint112 a, uint112 b) internal pure returns (uint112) {
         // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
         // benefit is lost if 'b' is also tested.
         // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
@@ -103,14 +102,15 @@ library SafeMath104 {
 
         uint112 c = a * b;
         if(!(c / a == b)){
-            console.log("%s * %s", a, b);
-            console.log("Mul overflow");
+            // console.log("%s * %s", a, b);
+            // console.log("Mul overflow");
             c = (2**112)-1;
         }
         // require(c / a == b, "SafeMath: multiplication overflow");
 
         return c;
     }
+
 
     /**
      * @dev Returns the integer division of two unsigned integers. Reverts with custom message on
@@ -125,7 +125,7 @@ library SafeMath104 {
      * - The divisor cannot be zero.
      */
     function div(uint112 a, uint112 b) internal pure returns (uint112) {
-        require(b > 0, "division by zero");
+        require(b > 0, "div by zero");
         uint112 c = a / b;
         // assert(a == b * c + a % b); // There is no case in which this doesn't hold
 
@@ -268,34 +268,50 @@ contract PrestigeClub is Ownable() {
     constructor() public {
  
         uint40 timestamp = uint40(block.timestamp);
-        pool_last_draw = timestamp - (timestamp % payout_interval) - payout_interval;
+        pool_last_draw = timestamp - (timestamp % payout_interval);// - (2 * payout_interval);
 
-        pools[0] = Pool(3 ether, 1, 3 ether, 130, 0);
-        pools[1] = Pool(15 ether, 3, 5 ether, 130, 0);
-        pools[2] = Pool(15 ether, 4, 44 ether, 130, 0);
-        pools[3] = Pool(30 ether, 10, 105 ether, 130, 0);
-        pools[4] = Pool(45 ether, 15, 280 ether, 130, 0);
-        pools[5] = Pool(60 ether, 20, 530 ether, 130, 0);
-        pools[6] = Pool(150 ether, 20, 1470 ether, 80, 0);
-        pools[7] = Pool(300 ether, 20, 2950 ether, 80, 0);
 
-        downlineBonuses[0] = DownlineBonusStage(3, 50);
-        downlineBonuses[1] = DownlineBonusStage(4, 100);
-        downlineBonuses[2] = DownlineBonusStage(5, 160);
-        downlineBonuses[3] = DownlineBonusStage(6, 210);
+        // pools[0] = Pool(3 ether, 1, 3 ether, 130, 0);
+        // pools[1] = Pool(15 ether, 3, 5 ether, 130, 0);
+        // pools[2] = Pool(15 ether, 4, 44 ether, 130, 0);
+        // pools[3] = Pool(30 ether, 10, 105 ether, 130, 0);
+        // pools[4] = Pool(45 ether, 15, 280 ether, 130, 0);
+        // pools[5] = Pool(60 ether, 20, 530 ether, 130, 0);
+        // pools[6] = Pool(150 ether, 20, 1470 ether, 80, 0);
+        // pools[7] = Pool(300 ether, 20, 2950 ether, 80, 0);
+
+        // downlineBonuses[0] = DownlineBonusStage(3, 50);
+        // downlineBonuses[1] = DownlineBonusStage(4, 100);
+        // downlineBonuses[2] = DownlineBonusStage(5, 160);
+        // downlineBonuses[3] = DownlineBonusStage(6, 210);
         
+        //Testing Pools
+        pools[0] = Pool(1000 wei, 1, 1000 wei, 130, 0); 
+        pools[1] = Pool(1000 wei, 1, 1000 wei, 130, 0);
+        pools[2] = Pool(1000 wei, 1, 10000 wei, 130, 0);
+        pools[3] = Pool(2 ether, 1, 10000 wei, 130, 0);
+        pools[4] = Pool(2 ether, 1, 10000 wei, 130, 0);
+        pools[5] = Pool(2 ether, 1, 10000 wei, 130, 0);
+        pools[6] = Pool(2 ether, 1, 10000 wei, 130, 0);
+        pools[7] = Pool(5 ether, 5, 10 ether, 80, 0);
         
         //Test Values
+        downlineBonuses[0] = DownlineBonusStage(3, 100);
+        downlineBonuses[1] = DownlineBonusStage(4, 160);
+        downlineBonuses[2] = DownlineBonusStage(5, 210);
+        downlineBonuses[3] = DownlineBonusStage(6, 260);
+
         userList.push(address(0));
         
     }
     
-    uint104 private minDeposit = 1 ether;
-    uint104 private minWithdraw = 1000 wei; 
+    uint112 internal minDeposit = 1 wei;
+    uint112 internal minWithdraw = 1000 wei; 
     
-    uint40 constant private payout_interval = 1 days;
+    uint40 constant internal payout_interval = 4 seconds;
     
     function recieve() public payable {
+        console.log("Recieve %s", msg.sender);
         require((users[msg.sender].deposit * 20 / 19) >= minDeposit || msg.value >= minDeposit, "Mininum deposit value not reached");
         
         address sender = msg.sender;
@@ -381,12 +397,17 @@ contract PrestigeClub is Ownable() {
     function updatePayout(address adr) private {
         
         uint40 dayz = (uint40(block.timestamp) - users[adr].lastPayout) / (payout_interval);
+        // console.log("Days: %s", dayz);
         if(dayz >= 1){
             
             uint112 interestPayout = getInterestPayout(adr);
             uint112 poolpayout = getPoolPayout(adr, dayz);
             uint112 directsPayout = getDirectsPayout(adr);
             uint112 downlineBonusAmount = getDownlinePayout(adr);
+            
+            console.log("Address: %s, days: %s", adr, dayz);
+            console.log("1 Day: i: %s, p: %s, directs: %s", interestPayout, poolpayout, directsPayout);
+            console.log("Down: %s", downlineBonusAmount);
             
             uint112 sum = interestPayout.add(directsPayout).add(downlineBonusAmount); 
             sum = (sum.mul(dayz)).add(poolpayout);
@@ -435,9 +456,9 @@ contract PrestigeClub is Ownable() {
 
                     if(stateNumUsers != 0){
                         payout_day += pool_base.div(stateNumUsers);
-                    }else{
+                    }/*else{
                         require(false, "Divison by 0"); //TODO DEBUG REMOVE
-                    }
+                    }*/
                 }
 
                 poolpayout = poolpayout.add(payout_day);
@@ -532,9 +553,9 @@ contract PrestigeClub is Ownable() {
     function updateDownlineBonusStage(address adr) private {
 
         uint8 bonusstage = users[adr].downlineBonus;
+        // console.log("Bonusstage %s", bonusstage);
 
         if(bonusstage < downlineBonuses.length){
-            
 
             //Check if requirements for next stage are met
             if(users[adr].qualifiedPools >= downlineBonuses[bonusstage].minPool){
@@ -554,9 +575,20 @@ contract PrestigeClub is Ownable() {
                 address current = users[adr].referer;
                 while(current != address(0)){
 
+                    // console.log("---");
 
+                    // for(uint c = 0 ; c < 5 ; c++){
+                    //     console.log("%s: %s", c, users[current].downlineVolumes[c]);
+                    // }
                     
+                    // console.log("Current %s", current);
+                    // console.log("PreviousBonusStage %s", lastBonusStage);
+                    // console.log("CurrentBonusStage %s", currentBonusStage);
 
+                    // console.log("Value %s", value);
+                    // console.log("Previous: %s", users[current].downlineVolumes[lastBonusStage]);
+                    // console.log("Current: %s", users[current].downlineVolumes[currentBonusStage]);
+                    
                     users[current].downlineVolumes[lastBonusStage] = users[current].downlineVolumes[lastBonusStage].sub(value);
                     users[current].downlineVolumes[currentBonusStage] = users[current].downlineVolumes[currentBonusStage].add(value);
 
@@ -680,11 +712,12 @@ contract PrestigeClub is Ownable() {
         return sum;
     }
     
-    function reCalculateImported() public onlyOwner {
-        for(uint64 i = 1 ; i < lastPosition + 1 ; i++){
+    function reCalculateImported(uint64 from, uint64 to) public onlyOwner {
+        uint40 time = pool_last_draw + 1;
+        for(uint64 i = from ; i < to + 1 ; i++){
             address adr = userList[i];
             users[adr].payout = 0;
-            users[adr].lastPayout = pool_last_draw - payout_interval;
+            users[adr].lastPayout = time;
             updatePayout(adr);
         }
     }
@@ -732,26 +765,8 @@ contract PrestigeClub is Ownable() {
         
     }
 
-    function getUserData() public view returns (
-        address adr_,
-        uint position_,
-        uint deposit_,
-        uint payout_,
-        uint qualifiedPools_,
-        uint downlineBonusStage_,
-        uint lastPayout,
-        address referer,
-        address[] memory referrals_) {
-
-            return (msg.sender, 
-                users[msg.sender].position,
-                users[msg.sender].deposit,
-                users[msg.sender].payout,
-                users[msg.sender].qualifiedPools,
-                users[msg.sender].downlineBonus,
-                users[msg.sender].lastPayout,
-                users[msg.sender].referer,
-                users[msg.sender].referrals);
+    function getUserReferrals(address adr) public view returns (address[] memory referrals){
+        return users[adr].referrals;
     }
     
     //DEBUGGING
@@ -760,31 +775,30 @@ contract PrestigeClub is Ownable() {
         return userList;
     }
     
-    function getUsers(address adr) public view returns (
-        address adr_,
-        uint32 position_,
-        uint128 deposit_,
-        uint128 payout_,
-        uint lastPayout_,
-        uint8 qualifiedPools_,
-        address referer
-        ){
+    // function getUsers(address adr) public view returns (
+    //     address adr_,
+    //     uint32 position_,
+    //     uint128 deposit_,
+    //     uint128 payout_,
+    //     uint lastPayout_,
+    //     uint8 qualifiedPools_,
+    //     address referer
+    //     ){
             
-            return (adr, 
-                users[adr].position,
-                users[adr].deposit,
-                users[adr].payout,
-                users[adr].lastPayout,
-                users[adr].qualifiedPools,
-                users[adr].referer
-                );
-    }
+    //         return (adr, 
+    //             users[adr].position,
+    //             users[adr].deposit,
+    //             users[adr].payout,
+    //             users[adr].lastPayout,
+    //             users[adr].qualifiedPools,
+    //             users[adr].referer
+    //             );
+    // }
     
     function triggerCalculation() public {
-        
         if(block.timestamp > pool_last_draw + payout_interval){
+            // console.log("Trigger Calculation");
             pushPoolState();
         }
     }
-
 }
